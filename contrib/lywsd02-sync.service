@@ -1,0 +1,12 @@
+# Install: see README "Run on a schedule". Adjust User= and paths to your setup.
+[Unit]
+Description=Sync Xiaomi LYWSD02 clock over BLE
+Wants=bluetooth.target
+After=bluetooth.target time-sync.target
+
+[Service]
+Type=oneshot
+User=pi
+EnvironmentFile=/etc/default/lywsd02-sync
+ExecStart=/opt/lywsd02-sync/.venv/bin/lywsd02-sync
+TimeoutStartSec=5min

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lywsd02-sync"
+dynamic = ["version"]
+description = "Sync the clock of Xiaomi LYWSD02 temperature/humidity monitors over BLE"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = ["bleak>=3.0,<4"]
+keywords = ["xiaomi", "lywsd02", "mijia", "ble", "bluetooth", "clock", "time sync"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Home Automation",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+lywsd02-sync = "lywsd02_sync.cli:main"
+
+[tool.setuptools]
+packages = ["lywsd02_sync"]
+
+[tool.setuptools.dynamic]
+version = { attr = "lywsd02_sync.__version__" }
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Xiaomi LYWSD02 clock sync
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+RandomizedDelaySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
