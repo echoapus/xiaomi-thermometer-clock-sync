@@ -23,7 +23,7 @@ from .protocol import (
     unpack_time,
 )
 
-log = logging.getLogger("lywsd02_sync")
+log = logging.getLogger("xiaomi_thermometer_clock_sync")
 
 SCAN_TIMEOUT = 20
 CONNECT_TIMEOUT = 30

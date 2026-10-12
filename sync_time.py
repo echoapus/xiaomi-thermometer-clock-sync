@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Backward-compatible wrapper; prefer `lywsd02-sync` or `python -m lywsd02_sync`."""
+"""Backward-compatible wrapper; prefer `xiaomi-thermometer-clock-sync` or `python -m xiaomi_thermometer_clock_sync`."""
 
-from lywsd02_sync.cli import main
+from xiaomi_thermometer_clock_sync.cli import main
 
 if __name__ == "__main__":
     main()

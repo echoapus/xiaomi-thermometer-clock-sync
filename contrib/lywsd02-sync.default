@@ -1,3 +1,0 @@
-# Copy to /etc/default/lywsd02-sync
-# Comma-separated device addresses (find them with: lywsd02-sync --scan)
-LYWSD02_MAC=AA:BB:CC:DD:EE:FF

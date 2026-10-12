@@ -20,7 +20,7 @@
 | 3 | 同步頻率 | 一次性同步，或定期同步（例如在 Pi 上用 cron / systemd timer）？ | 待確認 |
 | 4 | 時區 | 預設使用系統時區（Pi 為 Asia/Taipei, UTC+8），可用 `--tz` 指定。 | 已實作 |
 | 5 | 額外功能 | 電量（`ebe0ccc4…`，1 byte 百分比）、溫度與濕度（`ebe0ccc1…` notify，`<int16 溫度/100><uint8 濕度>`）皆已實作；`--read-only` 可只讀不寫。 | 已實作 |
-| 6 | 交付形式 | Python 套件 `lywsd02-sync`（CLI），附 systemd timer / cron 範例；支援多台裝置、`--scan`。 | 已實作 |
+| 6 | 交付形式 | Python 套件 `xiaomi-thermometer-clock-sync`（CLI），附 systemd timer / cron 範例；支援多台裝置、`--scan`。 | 已實作 |
 | 7 | 裝置數量與 MAC | 目前一台：`AA:BB:CC:DD:EE:FF`（廣播名稱 `LYWSD02`，public address）。 | 已確認 |
 
 ## 實測結果（2026-10-12）

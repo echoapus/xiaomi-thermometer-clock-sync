@@ -1,6 +1,6 @@
 import pytest
 
-from lywsd02_sync.cli import MAC_ENV, parse_args
+from xiaomi_thermometer_clock_sync.cli import LEGACY_MAC_ENV, MAC_ENV, parse_args
 
 
 def test_mac_argument_normalized():
@@ -19,6 +19,7 @@ def test_mac_from_env(monkeypatch):
 @pytest.mark.parametrize("argv", [[], ["not-a-mac"], ["AA:BB:CC:DD:EE:FF", "--tz", "Asia/Kolkata"]])
 def test_invalid_args_exit(monkeypatch, argv):
     monkeypatch.delenv(MAC_ENV, raising=False)
+    monkeypatch.delenv(LEGACY_MAC_ENV, raising=False)
     with pytest.raises(SystemExit) as e:
         parse_args(argv)
     assert e.value.code == 2
@@ -31,3 +32,9 @@ def test_scan_needs_no_mac(monkeypatch):
 
 def test_tz_option():
     assert parse_args(["AA:BB:CC:DD:EE:FF", "--tz", "UTC-5"]).tz_hours == -5
+
+
+def test_mac_from_legacy_env(monkeypatch):
+    monkeypatch.delenv(MAC_ENV, raising=False)
+    monkeypatch.setenv(LEGACY_MAC_ENV, "aa:bb:cc:dd:ee:ff")
+    assert parse_args([]).macs == ["AA:BB:CC:DD:EE:FF"]

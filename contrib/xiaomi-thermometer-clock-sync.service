@@ -7,6 +7,6 @@ After=bluetooth.target time-sync.target
 [Service]
 Type=oneshot
 User=pi
-EnvironmentFile=/etc/default/lywsd02-sync
-ExecStart=/opt/lywsd02-sync/.venv/bin/lywsd02-sync
+EnvironmentFile=/etc/default/xiaomi-thermometer-clock-sync
+ExecStart=/opt/xiaomi-thermometer-clock-sync/.venv/bin/xiaomi-thermometer-clock-sync
 TimeoutStartSec=5min

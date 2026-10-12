@@ -2,7 +2,7 @@ import argparse
 
 import pytest
 
-from lywsd02_sync.protocol import pack_time, parse_mibeacon, parse_tz, unpack_sensor, unpack_time
+from xiaomi_thermometer_clock_sync.protocol import pack_time, parse_mibeacon, parse_tz, unpack_sensor, unpack_time
 
 
 @pytest.mark.parametrize(

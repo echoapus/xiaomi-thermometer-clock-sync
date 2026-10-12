@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lywsd02-sync"
+name = "xiaomi-thermometer-clock-sync"
 dynamic = ["version"]
 description = "Sync the clock of Xiaomi LYWSD02 temperature/humidity monitors over BLE"
 readme = "README.md"
@@ -22,13 +22,13 @@ classifiers = [
 dev = ["pytest", "ruff"]
 
 [project.scripts]
-lywsd02-sync = "lywsd02_sync.cli:main"
+xiaomi-thermometer-clock-sync = "xiaomi_thermometer_clock_sync.cli:main"
 
 [tool.setuptools]
-packages = ["lywsd02_sync"]
+packages = ["xiaomi_thermometer_clock_sync"]
 
 [tool.setuptools.dynamic]
-version = { attr = "lywsd02_sync.__version__" }
+version = { attr = "xiaomi_thermometer_clock_sync.__version__" }
 
 [tool.ruff]
 line-length = 120

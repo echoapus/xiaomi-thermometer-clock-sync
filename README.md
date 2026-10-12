@@ -1,4 +1,4 @@
-# lywsd02-sync
+# xiaomi-thermometer-clock-sync
 
 Sync the clock of Xiaomi **LYWSD02** e-ink temperature/humidity monitors over Bluetooth LE from Linux (e.g. a Raspberry Pi), and read their battery, temperature and humidity. No Mi Home app, Mi account or token is needed.
 
@@ -11,15 +11,15 @@ Sync the clock of Xiaomi **LYWSD02** e-ink temperature/humidity monitors over Bl
 | Xiaomi Temperature and Humidity Monitor Clock (`LYWSD02`, manufacturer `miaomiaoce.com`, hardware `F2_LN`, MiBeacon product id `0x045b`) | `1.1.2_0097` | ✅ tested |
 | Devices with encrypted MiBeacon / newer firmware that require Mi authentication | — | ❌ not supported |
 
-Run `lywsd02-sync --scan`: if your device shows `ENCRYPTED no` it should work.
+Run `xiaomi-thermometer-clock-sync --scan`: if your device shows `ENCRYPTED no` it should work.
 
 ## Install
 
 Requires Linux with BlueZ and Python 3.10+.
 
 ```bash
-git clone https://github.com/echoapus/lywsd02-sync.git
-cd lywsd02-sync
+git clone https://github.com/echoapus/xiaomi-thermometer-clock-sync.git
+cd xiaomi-thermometer-clock-sync
 python3 -m venv .venv
 .venv/bin/pip install .
 ```
@@ -28,26 +28,26 @@ python3 -m venv .venv
 
 ```bash
 # 1. Find your device
-.venv/bin/lywsd02-sync --scan
+.venv/bin/xiaomi-thermometer-clock-sync --scan
 # MAC                NAME           RSSI  PRODUCT  ENCRYPTED
 # AA:BB:CC:DD:EE:FF  LYWSD02         -58  0x045b   no
 
 # 2. Sync its clock to this machine's time and timezone
-.venv/bin/lywsd02-sync AA:BB:CC:DD:EE:FF
+.venv/bin/xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF
 
 # Several devices, a specific timezone
-.venv/bin/lywsd02-sync AA:BB:CC:DD:EE:FF 11:22:33:44:55:66 --tz Asia/Tokyo
+.venv/bin/xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF 11:22:33:44:55:66 --tz Asia/Tokyo
 
 # Only read time, battery, temperature and humidity
-.venv/bin/lywsd02-sync AA:BB:CC:DD:EE:FF --read-only
+.venv/bin/xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF --read-only
 
 # MAC addresses from the environment
-LYWSD02_MAC=AA:BB:CC:DD:EE:FF .venv/bin/lywsd02-sync
+XIAOMI_CLOCK_MAC=AA:BB:CC:DD:EE:FF .venv/bin/xiaomi-thermometer-clock-sync
 ```
 
 | Option | Description |
 |---|---|
-| `MAC ...` | Device address(es). Default: `$LYWSD02_MAC` (comma-separated). |
+| `MAC ...` | Device address(es). Default: `$XIAOMI_CLOCK_MAC` (comma-separated; the old name `$LYWSD02_MAC` also works). |
 | `--tz ZONE` | IANA name (`Asia/Taipei`, `America/New_York`) or whole-hour offset (`8`, `+8`, `-5`, `UTC+8`). Default: system timezone. |
 | `--scan [SECONDS]` | List nearby Xiaomi devices (default 10 s) and exit. |
 | `--read-only` | Report state without writing the clock. |
@@ -60,25 +60,25 @@ Exit codes: `0` success, `1` a device failed (not found, connection error, verif
 ### Sample output
 
 ```
-INFO  lywsd02_sync: [1/7] scanning for AA:BB:CC:DD:EE:FF (timeout 20s)...
-INFO  lywsd02_sync: found AA:BB:CC:DD:EE:FF name='LYWSD02' in 5244ms
-INFO  lywsd02_sync: adv: MiBeacon frame_ctrl=0x2070 product_id=0x045b counter=198 encrypted=False
-INFO  lywsd02_sync: [2/7] connecting...
-INFO  lywsd02_sync: connected in 4277ms, mtu=23, 8 services / 47 characteristics
-INFO  lywsd02_sync: [3/7] reading device information
-INFO  lywsd02_sync:   model:        LYWSD02
-INFO  lywsd02_sync:   firmware rev: 1.1.2_0097
-INFO  lywsd02_sync:   battery:      16% (raw 10, 75ms)
-WARNING lywsd02_sync: battery low (16%), replace soon
-INFO  lywsd02_sync: [4/7] reading temperature / humidity
-INFO  lywsd02_sync:   temperature:  24.65°C (display unit °C)
-INFO  lywsd02_sync:   humidity:     56% (raw a10938, 5066ms)
-INFO  lywsd02_sync: [5/7] reading device time
-INFO  lywsd02_sync: device time: 2026-10-12T11:50:04+08:00 (raw ec58cc6a08, unix 1791776940, drift -58s, tz +8, 74ms)
-INFO  lywsd02_sync: [6/7] writing host time
-INFO  lywsd02_sync: wrote 2026-10-12T11:51:02+08:00 (raw 2659cc6a08, unix 1791777062, 5 bytes, with response, 73ms)
-INFO  lywsd02_sync: [7/7] verifying
-INFO  lywsd02_sync: AA:BB:CC:DD:EE:FF: synced (was -58s off), UTC+8, total 17.1s
+INFO  xiaomi_thermometer_clock_sync: [1/7] scanning for AA:BB:CC:DD:EE:FF (timeout 20s)...
+INFO  xiaomi_thermometer_clock_sync: found AA:BB:CC:DD:EE:FF name='LYWSD02' in 5244ms
+INFO  xiaomi_thermometer_clock_sync: adv: MiBeacon frame_ctrl=0x2070 product_id=0x045b counter=198 encrypted=False
+INFO  xiaomi_thermometer_clock_sync: [2/7] connecting...
+INFO  xiaomi_thermometer_clock_sync: connected in 4277ms, mtu=23, 8 services / 47 characteristics
+INFO  xiaomi_thermometer_clock_sync: [3/7] reading device information
+INFO  xiaomi_thermometer_clock_sync:   model:        LYWSD02
+INFO  xiaomi_thermometer_clock_sync:   firmware rev: 1.1.2_0097
+INFO  xiaomi_thermometer_clock_sync:   battery:      16% (raw 10, 75ms)
+WARNING xiaomi_thermometer_clock_sync: battery low (16%), replace soon
+INFO  xiaomi_thermometer_clock_sync: [4/7] reading temperature / humidity
+INFO  xiaomi_thermometer_clock_sync:   temperature:  24.65°C (display unit °C)
+INFO  xiaomi_thermometer_clock_sync:   humidity:     56% (raw a10938, 5066ms)
+INFO  xiaomi_thermometer_clock_sync: [5/7] reading device time
+INFO  xiaomi_thermometer_clock_sync: device time: 2026-10-12T11:50:04+08:00 (raw ec58cc6a08, unix 1791776940, drift -58s, tz +8, 74ms)
+INFO  xiaomi_thermometer_clock_sync: [6/7] writing host time
+INFO  xiaomi_thermometer_clock_sync: wrote 2026-10-12T11:51:02+08:00 (raw 2659cc6a08, unix 1791777062, 5 bytes, with response, 73ms)
+INFO  xiaomi_thermometer_clock_sync: [7/7] verifying
+INFO  xiaomi_thermometer_clock_sync: AA:BB:CC:DD:EE:FF: synced (was -58s off), UTC+8, total 17.1s
 ```
 
 ## Run on a schedule
@@ -86,12 +86,12 @@ INFO  lywsd02_sync: AA:BB:CC:DD:EE:FF: synced (was -58s off), UTC+8, total 17.1s
 **systemd timer** (daily at 03:00):
 
 ```bash
-sudo git clone https://github.com/echoapus/lywsd02-sync.git /opt/lywsd02-sync && cd /opt/lywsd02-sync
+sudo git clone https://github.com/echoapus/xiaomi-thermometer-clock-sync.git /opt/xiaomi-thermometer-clock-sync && cd /opt/xiaomi-thermometer-clock-sync
 sudo python3 -m venv .venv && sudo .venv/bin/pip install .
-sudo cp contrib/lywsd02-sync.default /etc/default/lywsd02-sync   # set LYWSD02_MAC
-sudo cp contrib/lywsd02-sync.service contrib/lywsd02-sync.timer /etc/systemd/system/  # adjust User=
-sudo systemctl daemon-reload && sudo systemctl enable --now lywsd02-sync.timer
-journalctl -u lywsd02-sync   # logs
+sudo cp contrib/xiaomi-thermometer-clock-sync.default /etc/default/xiaomi-thermometer-clock-sync   # set XIAOMI_CLOCK_MAC
+sudo cp contrib/xiaomi-thermometer-clock-sync.service contrib/xiaomi-thermometer-clock-sync.timer /etc/systemd/system/  # adjust User=
+sudo systemctl daemon-reload && sudo systemctl enable --now xiaomi-thermometer-clock-sync.timer
+journalctl -u xiaomi-thermometer-clock-sync   # logs
 ```
 
 **cron:** see [`contrib/crontab.example`](contrib/crontab.example).
@@ -134,10 +134,10 @@ Unit tests cover parsing and encoding and need no device. Background and test no
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install .
-.venv/bin/lywsd02-sync --scan                          # 找出裝置 MAC
-.venv/bin/lywsd02-sync AA:BB:CC:DD:EE:FF               # 同步時間（系統時區）
-.venv/bin/lywsd02-sync AA:BB:CC:DD:EE:FF --tz Asia/Tokyo
-.venv/bin/lywsd02-sync AA:BB:CC:DD:EE:FF --read-only   # 只讀取，不寫入
+.venv/bin/xiaomi-thermometer-clock-sync --scan                          # 找出裝置 MAC
+.venv/bin/xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF               # 同步時間（系統時區）
+.venv/bin/xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF --tz Asia/Tokyo
+.venv/bin/xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF --read-only   # 只讀取，不寫入
 ```
 
 - `--tz` 接受時區名稱或整數小時偏移；裝置只支援整點時區，`Asia/Kolkata`（+5.5）等會被拒絕。

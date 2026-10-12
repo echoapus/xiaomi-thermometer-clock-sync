@@ -1,4 +1,4 @@
-"""Command-line entry point: lywsd02-sync."""
+"""Command-line entry point: xiaomi-thermometer-clock-sync."""
 
 import argparse
 import asyncio
@@ -15,7 +15,8 @@ from . import __version__
 from .device import log, run, scan
 from .protocol import MIBEACON_UUID, fmt, local_tz_hours, parse_mibeacon, parse_tz
 
-MAC_ENV = "LYWSD02_MAC"
+MAC_ENV = "XIAOMI_CLOCK_MAC"
+LEGACY_MAC_ENV = "LYWSD02_MAC"  # name used before the project was renamed
 MAC_RE = re.compile(r"^([0-9A-F]{2}:){5}[0-9A-F]{2}$", re.IGNORECASE)
 
 EPILOG = f"""\
@@ -25,10 +26,10 @@ ZONE is an IANA name (Asia/Taipei, America/New_York) or a whole-hour UTC offset
 to their current offset and need a re-sync when DST changes.
 
 examples:
-  lywsd02-sync --scan
-  lywsd02-sync AA:BB:CC:DD:EE:FF
-  lywsd02-sync AA:BB:CC:DD:EE:FF 11:22:33:44:55:66 --tz Asia/Tokyo
-  lywsd02-sync --read-only -v
+  xiaomi-thermometer-clock-sync --scan
+  xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF
+  xiaomi-thermometer-clock-sync AA:BB:CC:DD:EE:FF 11:22:33:44:55:66 --tz Asia/Tokyo
+  xiaomi-thermometer-clock-sync --read-only -v
 """
 
 
@@ -47,7 +48,7 @@ def run_quiet(cmd):
 
 def log_environment():
     log.info(
-        "env: lywsd02-sync %s, python %s, bleak %s, %s, kernel %s",
+        "env: xiaomi-thermometer-clock-sync %s, python %s, bleak %s, %s, kernel %s",
         __version__,
         platform.python_version(),
         importlib.metadata.version("bleak"),
@@ -72,7 +73,7 @@ async def do_scan(timeout):
 
 def parse_args(argv=None):
     p = argparse.ArgumentParser(
-        prog="lywsd02-sync",
+        prog="xiaomi-thermometer-clock-sync",
         description="Sync the clock of Xiaomi LYWSD02 temperature/humidity monitors over BLE.",
         epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -99,7 +100,8 @@ def parse_args(argv=None):
     args = p.parse_args(argv)
 
     if args.scan is None and not args.macs:
-        env = [m.strip() for m in os.environ.get(MAC_ENV, "").split(",") if m.strip()]
+        value = os.environ.get(MAC_ENV) or os.environ.get(LEGACY_MAC_ENV, "")
+        env = [m.strip() for m in value.split(",") if m.strip()]
         try:
             args.macs = [mac_address(m) for m in env]
         except argparse.ArgumentTypeError as e:
