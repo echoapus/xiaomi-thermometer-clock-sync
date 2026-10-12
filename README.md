@@ -18,7 +18,7 @@ Run `lywsd02-sync --scan`: if your device shows `ENCRYPTED no` it should work.
 Requires Linux with BlueZ and Python 3.10+.
 
 ```bash
-git clone https://github.com/<you>/lywsd02-sync.git
+git clone https://github.com/echoapus/lywsd02-sync.git
 cd lywsd02-sync
 python3 -m venv .venv
 .venv/bin/pip install .
@@ -86,7 +86,7 @@ INFO  lywsd02_sync: AA:BB:CC:DD:EE:FF: synced (was -58s off), UTC+8, total 17.1s
 **systemd timer** (daily at 03:00):
 
 ```bash
-sudo git clone https://github.com/<you>/lywsd02-sync.git /opt/lywsd02-sync && cd /opt/lywsd02-sync
+sudo git clone https://github.com/echoapus/lywsd02-sync.git /opt/lywsd02-sync && cd /opt/lywsd02-sync
 sudo python3 -m venv .venv && sudo .venv/bin/pip install .
 sudo cp contrib/lywsd02-sync.default /etc/default/lywsd02-sync   # set LYWSD02_MAC
 sudo cp contrib/lywsd02-sync.service contrib/lywsd02-sync.timer /etc/systemd/system/  # adjust User=
