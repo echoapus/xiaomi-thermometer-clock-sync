@@ -1,2 +1,0 @@
-# Tested version; `pip install .` uses the range from pyproject.toml instead.
-bleak==3.0.2

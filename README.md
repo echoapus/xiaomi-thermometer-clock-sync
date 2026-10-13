@@ -88,13 +88,13 @@ INFO  xiaomi_thermometer_clock_sync: AA:BB:CC:DD:EE:FF: synced (was -58s off), U
 ```bash
 sudo git clone https://github.com/echoapus/xiaomi-thermometer-clock-sync.git /opt/xiaomi-thermometer-clock-sync && cd /opt/xiaomi-thermometer-clock-sync
 sudo python3 -m venv .venv && sudo .venv/bin/pip install .
-sudo cp contrib/xiaomi-thermometer-clock-sync.default /etc/default/xiaomi-thermometer-clock-sync   # set XIAOMI_CLOCK_MAC
-sudo cp contrib/xiaomi-thermometer-clock-sync.service contrib/xiaomi-thermometer-clock-sync.timer /etc/systemd/system/  # adjust User=
+sudo cp deploy/systemd/xiaomi-thermometer-clock-sync.default /etc/default/xiaomi-thermometer-clock-sync   # set XIAOMI_CLOCK_MAC
+sudo cp deploy/systemd/xiaomi-thermometer-clock-sync.service deploy/systemd/xiaomi-thermometer-clock-sync.timer /etc/systemd/system/  # adjust User=
 sudo systemctl daemon-reload && sudo systemctl enable --now xiaomi-thermometer-clock-sync.timer
 journalctl -u xiaomi-thermometer-clock-sync   # logs
 ```
 
-**cron:** see [`contrib/crontab.example`](contrib/crontab.example).
+**cron:** see [`deploy/cron/crontab.example`](deploy/cron/crontab.example).
 
 ## Troubleshooting
 
@@ -105,12 +105,7 @@ journalctl -u xiaomi-thermometer-clock-sync   # logs
 
 ## Protocol notes
 
-| Characteristic | Access | Format |
-|---|---|---|
-| `ebe0ccb7-7a0a-4b0c-8a1a-6ff2997da3a6` time | read/write | `<uint32 LE unix time><int8 UTC offset hours>` |
-| `ebe0ccc4-7a0a-4b0c-8a1a-6ff2997da3a6` battery | read | `<uint8 percent>` |
-| `ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6` sensor | notify (read returns empty) | `<int16 LE temp × 100 °C><uint8 humidity %>` |
-| `ebe0ccbe-7a0a-4b0c-8a1a-6ff2997da3a6` display unit | read/write | `0xff` °C, `0x01` °F |
+See [the BLE protocol reference](docs/protocol.md) for characteristic UUIDs, payload formats, and verification behavior.
 
 ## Development
 
@@ -120,7 +115,21 @@ journalctl -u xiaomi-thermometer-clock-sync   # logs
 .venv/bin/pytest
 ```
 
-Unit tests cover parsing and encoding and need no device. Background and test notes (Chinese) are in [`docs/RFP.md`](docs/RFP.md).
+Unit tests cover CLI argument parsing and protocol encoding/decoding and need no device. Dependencies are declared in `pyproject.toml`.
+
+## Project layout
+
+```text
+xiaomi_thermometer_clock_sync/  Python package and CLI
+tests/                        Device-free unit tests
+docs/protocol.md              BLE protocol reference
+deploy/systemd/               Service, timer, and environment file
+deploy/cron/                  Crontab example
+pyproject.toml                Package metadata, dependencies, and tool settings
+```
+
+The CLI can also be run with `python -m xiaomi_thermometer_clock_sync`.
+Local virtual environments, installation metadata, caches, and logs are ignored by Git.
 
 ## License
 
@@ -142,5 +151,5 @@ python3 -m venv .venv && .venv/bin/pip install .
 
 - `--tz` 接受時區名稱或整數小時偏移；裝置只支援整點時區，`Asia/Kolkata`（+5.5）等會被拒絕。
 - 掃描不到任何裝置時，先執行 `sudo rfkill unblock bluetooth`。
-- 定期同步請參考上方「Run on a schedule」與 `contrib/`。
+- 定期同步請參考上方「Run on a schedule」與 `deploy/`。
 - 只支援 `--scan` 顯示 `ENCRYPTED no` 的裝置；需要小米加密認證的新韌體不支援。

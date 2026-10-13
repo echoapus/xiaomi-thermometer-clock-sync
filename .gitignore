@@ -1,12 +1,21 @@
+# Virtual environments
 .venv/
 venv/
+
+# Python bytecode and packaging output
 __pycache__/
 *.py[cod]
 *.egg-info/
 build/
 dist/
+
+# Tool caches
 .pytest_cache/
 .ruff_cache/
+
+# Runtime logs and local configuration
 *.log
 .device.env
 .env
+.env.*
+!.env.example
