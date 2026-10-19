@@ -9,9 +9,28 @@ __pycache__/
 build/
 dist/
 
-# Tool caches
+*.egg
+.eggs/
+wheels/
+
+# Tool caches and test output
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/settings.local.json
 
 # Runtime logs and local configuration
 *.log
