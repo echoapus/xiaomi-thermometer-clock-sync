@@ -1,3 +1,0 @@
-# Add with `crontab -e`. Syncs daily at 03:00 and appends to a log file.
-XIAOMI_CLOCK_MAC=AA:BB:CC:DD:EE:FF
-0 3 * * * $HOME/xiaomi-thermometer-clock-sync/.venv/bin/xiaomi-thermometer-clock-sync >> $HOME/xiaomi-thermometer-clock-sync/sync.log 2>&1

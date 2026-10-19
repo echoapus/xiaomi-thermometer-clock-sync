@@ -1,25 +1,10 @@
-# Virtual environments
+# Virtual environment (holds bleak for the cron job)
 .venv/
 venv/
 
-# Python bytecode and packaging output
+# Python bytecode
 __pycache__/
 *.py[cod]
-*.egg-info/
-build/
-dist/
-
-*.egg
-.eggs/
-wheels/
-
-# Tool caches and test output
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-.coverage.*
-htmlcov/
 
 # Editor and OS files
 .vscode/
@@ -32,9 +17,6 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 
-# Runtime logs and local configuration
+# Runtime log and local device list (contains your MAC addresses)
 *.log
-.device.env
-.env
-.env.*
-!.env.example
+xiaomi-clock-devices.txt
