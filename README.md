@@ -115,11 +115,12 @@ Rerun with `--read-only -v` for diagnostics. Verbose logs contain MAC addresses 
 xiaomi_thermometer_clock_sync.py   The whole tool: protocol helpers, BLE operations and CLI
 xiaomi-clock-devices.txt           Optional device list next to the script (git-ignored)
 README.md                          This document
+LICENSE                            MIT license
 ```
 
 `.venv/` and `sync.log` are local to a cron setup and are git-ignored.
 
-This project is not affiliated with Xiaomi.
+[MIT](LICENSE). This project is not affiliated with Xiaomi.
 
 ---
 
@@ -234,8 +235,9 @@ python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF --read-only -v  # 診
 xiaomi_thermometer_clock_sync.py   完整工具：協定函式、BLE 操作與命令列介面
 xiaomi-clock-devices.txt           腳本旁的裝置清單（選用，不納入 Git）
 README.md                          本文件
+LICENSE                            MIT 授權
 ```
 
 `.venv/` 與 `sync.log` 僅供本機 cron 使用，不納入 Git。
 
-本專案與小米公司無隸屬關係。
+採用 [MIT 授權](LICENSE)。本專案與小米公司無隸屬關係。

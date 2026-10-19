@@ -12,6 +12,8 @@ A single self-contained file: copy it anywhere and run it with Python 3.10+.
 
 To run without arguments, list device addresses one per line in
 xiaomi-clock-devices.txt next to this file. See --help for all options.
+
+MIT License. Copyright (c) 2026 xiaomi-thermometer-clock-sync contributors.
 """
 
 import argparse
