@@ -14,8 +14,8 @@ Each run syncs once and exits; use cron (or another scheduler) for recurring syn
 
 | Item | Requirement / tested configuration |
 |---|---|
-| Host | Python 3.10+ and an enabled BLE adapter. Tested on Linux (Raspberry Pi, BlueZ); Windows 10+ and macOS are supported by `bleak` but untested |
-| Dependency | `bleak>=3.0,<4` (plus `tzdata` on Windows) |
+| Host | Python 3.10+ and an enabled BLE adapter. Tested on Linux (Raspberry Pi, BlueZ). `bleak` requires BlueZ 5.55+ on Linux; Windows 11 (build 22000+) and macOS 10.15+ are supported by `bleak` but untested here (on macOS 12.0–12.2, scans may find nothing) |
+| Dependency | `bleak>=3.1,<4` (plus `tzdata` on Windows) |
 | Tested model | `LYWSD02`, hardware `F2_LN`, firmware `1.1.2_0097`, MiBeacon product ID `0x045b` |
 | Not supported | Firmware that requires Mi authentication |
 | Host clock | Must already be correct; NTP is recommended |
@@ -32,7 +32,7 @@ uv run xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF
 Without uv, install `bleak` once (on Windows use `py` instead of `python3`, and also install `tzdata`):
 
 ```bash
-python3 -m pip install bleak
+python3 -m pip install "bleak>=3.1,<4"
 python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF
 ```
 
@@ -41,7 +41,7 @@ On Debian / Raspberry Pi OS, a virtual environment avoids the system-wide pip re
 ```bash
 sudo apt install python3-venv bluez
 python3 -m venv .venv
-.venv/bin/pip install bleak
+.venv/bin/pip install "bleak>=3.1,<4"
 .venv/bin/python xiaomi_thermometer_clock_sync.py --scan
 ```
 
@@ -60,7 +60,7 @@ python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF --read-only -v  # dia
 | `MAC ...` | One or more device addresses. On macOS, use the UUID that `--scan` prints; macOS does not expose Bluetooth MAC addresses. |
 | `--tz ZONE` | IANA name (`Asia/Taipei`) or whole-hour offset (`8`, `+8`, `-5`, `UTC+8`). Defaults to the system timezone. |
 | `--scan [SECONDS]` | List nearby Xiaomi devices, strongest signal first, and exit. |
-| `--read-only` | Read time, battery and sensor values without writing. |
+| `--read-only` | Leave the clock unchanged and report time, battery, device information and sensor values. Reading the sensor still subscribes to its notifications, which writes the BLE notification descriptor. |
 | `-v`, `--verbose` | Also show the GATT table, raw reads, tracebacks and bleak debug logs. |
 | `--version`, `-h` | Print the version or usage and exit. |
 
@@ -75,17 +75,17 @@ Exit codes: `0` success, `1` at least one device failed (or a scan found nothing
 
 ### Timezones and sync behavior
 
-The device stores a Unix timestamp and a **whole-hour** UTC offset (−12 to +14). Fractional zones such as `Asia/Kolkata` are rejected with `--tz`; without `--tz` the system offset is rounded. IANA names resolve to their current offset, so daylight-saving zones need another sync after a change; a recurring schedule handles that.
+The device stores a Unix timestamp and a **whole-hour** UTC offset (−12 to +14). Fractional zones such as `Asia/Kolkata` are rejected, whether they come from `--tz` or, when syncing, the system timezone (then pass `--tz` with a whole-hour offset). The offset is resolved right before each write, and IANA names resolve to their current offset, so daylight-saving zones need another sync after a change; a recurring schedule handles that.
 
-A sync scans for the device (20 s timeout), connects (30 s), reads device info and battery (warns below 20%), waits for a temperature/humidity notification (15 s), reads the clock, writes the host time, then reads it back and fails if the offset differs or drift exceeds 60 s. `--read-only` stops after reading the clock. There are no automatic retries. Logs go to stderr; the scan table goes to stdout.
+A sync scans for the device (20 s timeout), connects (30 s), reads the model and battery (warns below 20%), reads the clock, writes the host time, then reads it back and fails if the offset differs or drift exceeds 3 s. It refuses to write unless the device reports model `LYWSD02` and the time characteristic is writable. `--read-only` and `-v` also read the full device information and wait for a temperature/humidity notification (15 s); `--read-only` stops after reading the clock. Each BLE read/write times out after 10 s and each device after 180 s, so one stuck device does not block the rest. If a timed-out device's disconnect never completes, the script finishes the other devices and then exits immediately with code `1` instead of waiting, so a cron `flock` is released. There are no automatic retries. Logs go to stderr; the scan table goes to stdout.
 
 ### Schedule with cron
 
 ```cron
-20 */2 * * * /usr/bin/flock -n /tmp/xiaomi-clock-sync.lock /path/to/.venv/bin/python /path/to/xiaomi_thermometer_clock_sync.py >> /path/to/sync.log 2>&1
+20 */2 * * * /usr/bin/flock -n /path/to/xiaomi-clock-sync.lock /path/to/.venv/bin/python /path/to/xiaomi_thermometer_clock_sync.py >> /path/to/sync.log 2>&1
 ```
 
-Use absolute paths and put the addresses in a devices file. `flock -n` skips a run if the previous one is still going. Append `--tz Asia/Taipei` before `>>` if needed, and rotate `sync.log` for long-running setups.
+Use absolute paths and put the addresses in a devices file. `flock -n` skips a run if the previous one is still going. Append `--tz Asia/Taipei` before `>>` if needed, and rotate `sync.log` for long-running setups. Keep the lock file and log in a directory only the cron user can write, and the log readable only by that user.
 
 ### Troubleshooting
 
@@ -93,12 +93,12 @@ Use absolute paths and put the addresses in a devices file. `flock -n` skips a r
 |---|---|
 | No devices found | Bluetooth is on. On Linux: `rfkill list bluetooth`, `sudo rfkill unblock bluetooth`, `bluetoothctl power on`. |
 | Target not found / connection fails | Scan again, confirm the address, move closer, check the battery, retry. |
-| `bleak` is not installed | Run `pip install bleak` for the Python you use, or run the script with `uv run`. |
+| `bleak` is not installed | Run `pip install "bleak>=3.1,<4"` for the Python you use, or run the script with `uv run`. |
 | Wrong time after sync | Host clock (`timedatectl status` on Linux), the chosen offset, and the whole-hour limitation. |
 | Unknown IANA timezone | Spelling, and that `tzdata` is installed (always needed on Windows). |
 | Works manually, fails in cron | Absolute paths, the devices file, the cron user's Bluetooth access, and `sync.log`. |
 
-Rerun with `--read-only -v` for diagnostics. Verbose logs contain MAC addresses and serial numbers; redact them before sharing.
+Rerun with `--read-only -v` for diagnostics. All logs contain MAC addresses, and `--read-only` / `-v` logs also contain serial numbers; redact them before sharing.
 
 ### BLE protocol
 
@@ -114,13 +114,14 @@ Rerun with `--read-only -v` for diagnostics. Verbose logs contain MAC addresses 
 ```text
 xiaomi_thermometer_clock_sync.py   The whole tool: protocol helpers, BLE operations and CLI
 xiaomi-clock-devices.txt           Optional device list next to the script (git-ignored)
+tests/                             Unit tests: python3 -m unittest discover tests (no bleak needed)
 README.md                          This document
 LICENSE                            MIT license
 ```
 
-`.venv/` and `sync.log` are local to a cron setup and are git-ignored.
+`.venv/` and `sync.log` (including rotated copies) are local to a cron setup and are git-ignored.
 
-[MIT](LICENSE). This project is not affiliated with Xiaomi.
+[MIT](LICENSE). The script carries the full license notice, so it can be copied on its own. This project is not affiliated with Xiaomi.
 
 ---
 
@@ -134,8 +135,8 @@ LICENSE                            MIT license
 
 | 項目 | 需求／已測試組合 |
 |---|---|
-| 主機 | Python 3.10 以上與已啟用的 BLE 藍牙。已在 Linux（Raspberry Pi、BlueZ）測試；Windows 10 以上與 macOS 由 `bleak` 支援，但未測試 |
-| 依賴 | `bleak>=3.0,<4`（Windows 另需 `tzdata`） |
+| 主機 | Python 3.10 以上與已啟用的 BLE 藍牙。已在 Linux（Raspberry Pi、BlueZ）測試。`bleak` 在 Linux 需要 BlueZ 5.55 以上；Windows 11（組建 22000 以上）與 macOS 10.15 以上由 `bleak` 支援，但本專案未測試（macOS 12.0–12.2 掃描可能找不到裝置） |
+| 依賴 | `bleak>=3.1,<4`（Windows 另需 `tzdata`） |
 | 已測試型號 | `LYWSD02`，硬體 `F2_LN`，韌體 `1.1.2_0097`，MiBeacon 產品識別碼 `0x045b` |
 | 不支援 | 需要小米認證的韌體 |
 | 主機時間 | 必須先確保正確，建議使用 NTP |
@@ -152,7 +153,7 @@ uv run xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF
 不使用 uv 時，先安裝一次 `bleak`（Windows 請將 `python3` 改為 `py`，並另外安裝 `tzdata`）：
 
 ```bash
-python3 -m pip install bleak
+python3 -m pip install "bleak>=3.1,<4"
 python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF
 ```
 
@@ -161,7 +162,7 @@ Debian／Raspberry Pi OS 可使用虛擬環境，避開系統 pip 的限制：
 ```bash
 sudo apt install python3-venv bluez
 python3 -m venv .venv
-.venv/bin/pip install bleak
+.venv/bin/pip install "bleak>=3.1,<4"
 .venv/bin/python xiaomi_thermometer_clock_sync.py --scan
 ```
 
@@ -180,7 +181,7 @@ python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF --read-only -v  # 診
 | `MAC ...` | 一個或多個裝置位址。macOS 不提供藍牙 MAC，請改用 `--scan` 顯示的 UUID。 |
 | `--tz ZONE` | IANA 名稱（`Asia/Taipei`）或整數小時偏移（`8`、`+8`、`-5`、`UTC+8`），預設為系統時區。 |
 | `--scan [秒數]` | 依訊號強度列出附近的小米裝置後結束。 |
-| `--read-only` | 只讀取時間、電量與感測值，不寫入。 |
+| `--read-only` | 不修改時鐘，只回報時間、電量、裝置資訊與感測值。讀取感測值時仍會訂閱通知，這會寫入 BLE 通知描述元。 |
 | `-v`, `--verbose` | 另外顯示 GATT 表、原始讀值、錯誤追蹤與 bleak 除錯紀錄。 |
 | `--version`, `-h` | 顯示版本或用法後結束。 |
 
@@ -195,17 +196,17 @@ python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF --read-only -v  # 診
 
 ### 時區與同步流程
 
-裝置儲存 Unix 時間與**整數小時**的 UTC 偏移（−12 至 +14）。使用 `--tz` 時會拒絕非整數時區（如 `Asia/Kolkata`）；未指定時則將系統偏移四捨五入。IANA 名稱會換算為當下的偏移，日光節約時間切換後需再同步一次，定期排程會自動處理。
+裝置儲存 Unix 時間與**整數小時**的 UTC 偏移（−12 至 +14）。非整數時區（如 `Asia/Kolkata`）一律拒絕，不論來自 `--tz` 或同步時的系統時區（此時請以 `--tz` 指定整數小時偏移）。偏移在每次寫入前才計算，IANA 名稱會換算為當下的偏移，日光節約時間切換後需再同步一次，定期排程會自動處理。
 
-同步流程：掃描裝置（逾時 20 秒）→ 連線（30 秒）→ 讀取裝置資訊與電量（低於 20% 會警告）→ 等待溫濕度通知（15 秒）→ 讀取時鐘 → 寫入主機時間 → 讀回驗證，偏移不符或誤差超過 60 秒即視為失敗。`--read-only` 在讀取時鐘後即停止。不會自動重試。紀錄輸出至 stderr，掃描表格輸出至 stdout。
+同步流程：掃描裝置（逾時 20 秒）→ 連線（30 秒）→ 讀取型號與電量（低於 20% 會警告）→ 讀取時鐘 → 寫入主機時間 → 讀回驗證，偏移不符或誤差超過 3 秒即視為失敗。裝置回報的型號不是 `LYWSD02`（或無法讀取）或時間特徵值不可寫入時，不會寫入。`--read-only` 與 `-v` 另外讀取完整裝置資訊並等待溫濕度通知（15 秒）；`--read-only` 在讀取時鐘後即停止。每次 BLE 讀寫逾時 10 秒、每台裝置逾時 180 秒，單一裝置卡住不會擋住其他裝置。若逾時裝置的斷線始終無法完成，腳本會先處理完其他裝置，再直接以代碼 `1` 結束而不等待，讓 cron 的 `flock` 得以釋放。不會自動重試。紀錄輸出至 stderr，掃描表格輸出至 stdout。
 
 ### cron 排程
 
 ```cron
-20 */2 * * * /usr/bin/flock -n /tmp/xiaomi-clock-sync.lock /path/to/.venv/bin/python /path/to/xiaomi_thermometer_clock_sync.py >> /path/to/sync.log 2>&1
+20 */2 * * * /usr/bin/flock -n /path/to/xiaomi-clock-sync.lock /path/to/.venv/bin/python /path/to/xiaomi_thermometer_clock_sync.py >> /path/to/sync.log 2>&1
 ```
 
-請使用絕對路徑，並將位址寫入裝置清單檔。`flock -n` 會在前一次尚未結束時跳過本次執行。需要指定時區時，在 `>>` 前加上 `--tz Asia/Taipei`；長期執行請安排 `sync.log` 輪替。
+請使用絕對路徑，並將位址寫入裝置清單檔。`flock -n` 會在前一次尚未結束時跳過本次執行。需要指定時區時，在 `>>` 前加上 `--tz Asia/Taipei`；長期執行請安排 `sync.log` 輪替。鎖定檔與紀錄請放在只有 cron 使用者可寫入的目錄，紀錄也只開放該使用者讀取。
 
 ### 疑難排解
 
@@ -213,12 +214,12 @@ python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF --read-only -v  # 診
 |---|---|
 | 找不到任何裝置 | 藍牙是否開啟。Linux：`rfkill list bluetooth`、`sudo rfkill unblock bluetooth`、`bluetoothctl power on`。 |
 | 找不到目標或連線失敗 | 重新掃描確認位址、靠近裝置、檢查電池後重試。 |
-| 未安裝 `bleak` | 對所使用的 Python 執行 `pip install bleak`，或改用 `uv run`。 |
+| 未安裝 `bleak` | 對所使用的 Python 執行 `pip install "bleak>=3.1,<4"`，或改用 `uv run`。 |
 | 同步後時間錯誤 | 主機時間（Linux：`timedatectl status`）、選用的偏移與整數小時限制。 |
 | 無法辨識 IANA 時區 | 拼字，以及是否已安裝 `tzdata`（Windows 必裝）。 |
 | 手動正常、cron 失敗 | 絕對路徑、裝置清單檔、cron 使用者的藍牙權限與 `sync.log`。 |
 
-診斷時請加上 `--read-only -v`。詳細紀錄含有 MAC 位址與序號，分享前請先遮蔽。
+診斷時請加上 `--read-only -v`。所有紀錄都含有 MAC 位址，`--read-only`／`-v` 的紀錄另含序號，分享前請先遮蔽。
 
 ### BLE 協定
 
@@ -234,10 +235,11 @@ python3 xiaomi_thermometer_clock_sync.py AA:BB:CC:DD:EE:FF --read-only -v  # 診
 ```text
 xiaomi_thermometer_clock_sync.py   完整工具：協定函式、BLE 操作與命令列介面
 xiaomi-clock-devices.txt           腳本旁的裝置清單（選用，不納入 Git）
+tests/                             單元測試：python3 -m unittest discover tests（不需 bleak）
 README.md                          本文件
 LICENSE                            MIT 授權
 ```
 
-`.venv/` 與 `sync.log` 僅供本機 cron 使用，不納入 Git。
+`.venv/` 與 `sync.log`（含輪替後的檔案）僅供本機 cron 使用，不納入 Git。
 
-採用 [MIT 授權](LICENSE)。本專案與小米公司無隸屬關係。
+採用 [MIT 授權](LICENSE)。腳本內含完整授權聲明，可單獨複製。本專案與小米公司無隸屬關係。

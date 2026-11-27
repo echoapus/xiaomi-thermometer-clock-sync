@@ -19,4 +19,8 @@ Thumbs.db
 
 # Runtime log and local device list (contains your MAC addresses)
 *.log
+*.log.*
 xiaomi-clock-devices.txt
+
+# cc-suite audit reports
+.cc-suite/
